@@ -16,5 +16,8 @@
     "url": "https://github.com/Haberkamp/prettier-plugin-shopware-twig/issues"
   },
   "homepage": "https://github.com/Haberkamp/prettier-plugin-shopware-twig#readme",
-  "description": ""
+  "description": "",
+  "peerDependencies": {
+    "prettier": "^3.0.0"
+  }
 }
