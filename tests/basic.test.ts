@@ -16,3 +16,14 @@ it.each([
   // ASSERT
   expect(result).toBe("{% block my_block %}{% endblock %}");
 });
+
+it("removes the spaces inside empty block statements", async () => {
+  const code = "{% block my_block %}       {% endblock %}";
+
+  const result = await prettier.format(code, {
+    parser: "shopware-twig",
+    plugins: ["./src/index.js"],
+  });
+
+  expect(result).toBe("{% block my_block %}{% endblock %}");
+});
