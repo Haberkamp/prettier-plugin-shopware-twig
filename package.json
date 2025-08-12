@@ -8,7 +8,7 @@
   "scripts": {
     "prepare": "tshy",
     "build": "tshy",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,9 @@
     "prettier": "^3.0.0"
   },
   "devDependencies": {
-    "tshy": "^3.0.2"
+    "tshy": "^3.0.2",
+    "vite": "^7.1.2",
+    "vitest": "^3.2.4"
   },
   "type": "module",
   "tshy": {
