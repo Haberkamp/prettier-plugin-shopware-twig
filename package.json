@@ -1,0 +1,20 @@
+{
+  "name": "prettier-plugin-shopware-twig",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haberkamp/prettier-plugin-shopware-twig.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Haberkamp/prettier-plugin-shopware-twig/issues"
+  },
+  "homepage": "https://github.com/Haberkamp/prettier-plugin-shopware-twig#readme",
+  "description": ""
+}
