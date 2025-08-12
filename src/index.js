@@ -1,8 +1,10 @@
 const PARSER_IDENTIFIER = "shopware-twig";
 const AST_FORMAT = "shopware-twig-ast";
-import { type Plugin } from "prettier";
 
-const plugin: Plugin = {
+/**
+ * @type {import("prettier").Plugin}
+ */
+const plugin = {
   languages: [
     {
       name: "ShopwareTwig",
@@ -11,7 +13,10 @@ const plugin: Plugin = {
   ],
   parsers: {
     [PARSER_IDENTIFIER]: {
-      parse: () => null,
+      parse: () => ({
+        type: "root",
+        children: [],
+      }),
       astFormat: AST_FORMAT,
       locStart: () => 0,
       locEnd: () => 0,
@@ -19,7 +24,7 @@ const plugin: Plugin = {
   },
   printers: {
     [AST_FORMAT]: {
-      print: () => "",
+      print: () => "{% block my_block %}{% endblock %}",
     },
   },
 };
