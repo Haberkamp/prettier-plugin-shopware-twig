@@ -1,8 +1,13 @@
 {
   "name": "prettier-plugin-shopware-twig",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./dist/commonjs/index.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "prepare": "tshy",
+    "build": "tshy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +24,30 @@
   "description": "",
   "peerDependencies": {
     "prettier": "^3.0.0"
-  }
+  },
+  "devDependencies": {
+    "tshy": "^3.0.2"
+  },
+  "type": "module",
+  "tshy": {
+    "exports": {
+      "./package.json": "./package.json",
+      ".": "./src/index.ts"
+    }
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/commonjs/index.d.ts",
+        "default": "./dist/commonjs/index.js"
+      }
+    }
+  },
+  "types": "./dist/commonjs/index.d.ts",
+  "module": "./dist/esm/index.js"
 }
