@@ -14,7 +14,7 @@ it.each([
   });
 
   // ASSERT
-  expect(result).toBe("{% block my_block %}{% endblock %}");
+  expect(result).toMatchSnapshot();
 });
 
 it("removes the spaces inside empty block statements", async () => {
@@ -25,5 +25,5 @@ it("removes the spaces inside empty block statements", async () => {
     plugins: ["./src/index.js"],
   });
 
-  expect(result).toBe("{% block my_block %}{% endblock %}");
+  expect(result).toMatchInlineSnapshot(`"{% block my_block %}{% endblock %}"`);
 });

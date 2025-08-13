@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`formats spaces inside statement delimiters: {% block my_block %}{% endblock%} 1`] = `"{% block my_block %}{% endblock %}"`;
+
+exports[`formats spaces inside statement delimiters: {% block my_block %}{%endblock %} 1`] = `"{% block my_block %}{% endblock %}"`;
+
+exports[`formats spaces inside statement delimiters: {% block my_block%}{% endblock %} 1`] = `"{% block my_block %}{% endblock %}"`;
+
+exports[`formats spaces inside statement delimiters: {%block my_block %}{% endblock %} 1`] = `"{% block my_block %}{% endblock %}"`;
