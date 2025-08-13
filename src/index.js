@@ -1,7 +1,11 @@
 import { parse } from "shopware-twig-parser";
+import { doc } from "prettier";
 
 const PARSER_IDENTIFIER = "shopware-twig";
 const AST_FORMAT = "shopware-twig-ast";
+
+// Extract doc builders
+const { indent, hardline } = doc.builders;
 
 /**
  * Print function that properly traverses the AST
@@ -33,9 +37,15 @@ function print(path, options, print) {
         const closeTag = "{% endblock %}";
 
         if (node.children && node.children.length > 0) {
-          // If there are nested children, print them between open and close tags
+          // If there are nested children, print them with proper indentation
           const childrenDocs = path.map(print, "children");
-          return [openTag, ...childrenDocs, closeTag];
+
+          return [
+            openTag,
+            indent([hardline, childrenDocs]),
+            hardline,
+            closeTag,
+          ];
         } else {
           // Empty block - no space between tags
           return [openTag, closeTag];
