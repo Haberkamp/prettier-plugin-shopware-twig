@@ -6,7 +6,6 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "tshy",
     "build": "tshy",
     "test": "vitest"
   },
@@ -51,5 +50,8 @@
     }
   },
   "types": "./dist/commonjs/index.d.ts",
-  "module": "./dist/esm/index.js"
+  "module": "./dist/esm/index.js",
+  "dependencies": {
+    "shopware-twig-parser": "0.1.0"
+  }
 }
