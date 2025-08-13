@@ -28,6 +28,12 @@ function print(path, options, print) {
       return path.map(print, "children");
 
     case "twig_statement_directive":
+      // Handle function calls
+      if (node.function) {
+        const functionName = node.function.name;
+        return `{% ${functionName}() %}`;
+      }
+
       // Handle block statements
       const tagName = node.tag?.name;
       const variableName = node.variable?.content;
