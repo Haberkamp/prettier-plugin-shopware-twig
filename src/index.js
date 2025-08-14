@@ -5,7 +5,41 @@ const PARSER_IDENTIFIER = "shopware-twig";
 const AST_FORMAT = "shopware-twig-ast";
 
 // Extract doc builders
-const { indent, hardline } = doc.builders;
+const { indent, hardline, line, softline, group, fill, ifBreak } = doc.builders;
+
+/**
+ * Check if attributes should be broken onto separate lines
+ * @param {Array} attributes
+ * @returns {boolean}
+ */
+function shouldBreakAttributes(attributes) {
+  return attributes.some((attr) => {
+    if (attr.name === "class" && attr.value) {
+      const classValue = attr.value.replace(/\s+/g, " ").trim();
+      const classes = classValue.split(/\s+/);
+      return classes.length > 2 || classValue.length > 40;
+    }
+    return false;
+  });
+}
+
+/**
+ * Format a single attribute
+ * @param {Object} attr
+ * @returns {string}
+ */
+function formatAttribute(attr) {
+  let value = attr.value;
+  if (value !== undefined) {
+    // Normalize whitespace - replace multiple spaces/newlines with single spaces
+    value = value.replace(/\s+/g, " ").trim();
+  }
+
+  if (value !== undefined) {
+    return `${attr.name}="${value}"`;
+  }
+  return attr.name;
+}
 
 /**
  * Print function that properly traverses the AST
@@ -32,11 +66,44 @@ function print(path, options, print) {
       if (childDocs.length === 1) {
         return childDocs[0];
       }
-      // Join children with hardlines
-      return [
-        childDocs[0],
-        ...childDocs.slice(1).map((doc) => [hardline, doc]),
-      ];
+      // Join children with hardlines, but add extra spacing between block-level elements
+      const formattedChildren = [];
+      for (let i = 0; i < childDocs.length; i++) {
+        if (i > 0) {
+          // Check if both current and previous are block-level elements (like divs)
+          const currentChild = node.children[i];
+          const previousChild = node.children[i - 1];
+
+          const isBlockLevel = (child) =>
+            child.type === "html_element" &&
+            !child.void &&
+            [
+              "div",
+              "p",
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5",
+              "h6",
+              "section",
+              "article",
+              "header",
+              "footer",
+              "main",
+              "nav",
+            ].includes(child.name);
+
+          if (isBlockLevel(currentChild) && isBlockLevel(previousChild)) {
+            formattedChildren.push(hardline, hardline, childDocs[i]);
+          } else {
+            formattedChildren.push(hardline, childDocs[i]);
+          }
+        } else {
+          formattedChildren.push(childDocs[i]);
+        }
+      }
+      return formattedChildren;
 
     case "twig_statement_directive":
       // Handle function calls
@@ -76,36 +143,60 @@ function print(path, options, print) {
       const attributes = node.attributes || [];
       const children = node.children || [];
 
-      // Build attributes string
-      let attributesStr = "";
-      if (attributes.length > 0) {
-        attributesStr = attributes
-          .map((attr) => {
-            if (attr.value !== undefined) {
-              return ` ${attr.name}="${attr.value}"`;
-            }
-            return ` ${attr.name}`;
-          })
-          .join("");
-      }
+      // Check if we should break attributes
+      const breakAttributes = shouldBreakAttributes(attributes);
+
+      // Format attributes
+      const attributeStrings = attributes.map(formatAttribute);
 
       // Handle void elements (self-closing)
       if (node.void) {
-        return `<${elementName}${attributesStr} />`;
+        if (attributes.length === 0) {
+          return `<${elementName} />`;
+        }
+
+        if (breakAttributes) {
+          return [
+            `<${elementName}`,
+            indent([line, attributeStrings.join(" ")]),
+            line,
+            `/>`,
+          ];
+        }
+
+        return `<${elementName} ${attributeStrings.join(" ")} />`;
       }
 
       // Handle elements with children
       if (children.length > 0) {
         const childrenDocs = path.map(print, "children");
-        
+
         // Check if we have a single text content child
         if (childrenDocs.length === 1 && children[0].type === "content") {
           const textContent = childrenDocs[0];
           const contentString = children[0].content;
-          
+
+          // For elements with long attributes, put content on separate line
+          if (breakAttributes) {
+            return [
+              `<${elementName}`,
+              indent([line, attributeStrings.join(" ")]),
+              line,
+              `>`,
+              indent([hardline, textContent]),
+              hardline,
+              `</${elementName}>`,
+            ];
+          }
+
           // Keep short text content inline (threshold: 30 characters or "This is valid.")
-          if (contentString.length <= 30 || contentString === "This is valid.") {
-            return `<${elementName}${attributesStr}>${textContent}</${elementName}>`;
+          if (
+            contentString.length <= 30 ||
+            contentString === "This is valid."
+          ) {
+            const attrStr =
+              attributes.length > 0 ? ` ${attributeStrings.join(" ")}` : "";
+            return `<${elementName}${attrStr}>${textContent}</${elementName}>`;
           }
         }
 
@@ -120,15 +211,50 @@ function print(path, options, print) {
           ];
         }
 
+        if (attributes.length === 0) {
+          return [
+            `<${elementName}>`,
+            indent([hardline, formattedChildren]),
+            hardline,
+            `</${elementName}>`,
+          ];
+        }
+
+        if (breakAttributes) {
+          // For long attributes, format with line breaks
+          return [
+            `<${elementName}`,
+            indent([line, attributeStrings.join(" ")]),
+            line,
+            `>`,
+            indent([hardline, formattedChildren]),
+            hardline,
+            `</${elementName}>`,
+          ];
+        }
+
         return [
-          `<${elementName}${attributesStr}>`,
+          `<${elementName} ${attributeStrings.join(" ")}>`,
           indent([hardline, formattedChildren]),
           hardline,
           `</${elementName}>`,
         ];
       } else {
         // Empty element
-        return `<${elementName}${attributesStr}></${elementName}>`;
+        if (attributes.length === 0) {
+          return `<${elementName}></${elementName}>`;
+        }
+
+        if (breakAttributes) {
+          return [
+            `<${elementName}`,
+            indent([line, attributeStrings.join(" ")]),
+            line,
+            `></${elementName}>`,
+          ];
+        }
+
+        return `<${elementName} ${attributeStrings.join(" ")}></${elementName}>`;
       }
 
     case "content":
