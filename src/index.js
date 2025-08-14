@@ -13,7 +13,42 @@ const { indent, hardline, line, softline, group, fill, ifBreak } = doc.builders;
  * @returns {boolean}
  */
 function shouldBreakAttributes(attributes) {
+  // Don't break if there are only a few short attributes
+  if (attributes.length <= 4) {
+    // Check if all attributes are short
+    const allShort = attributes.every((attr) => {
+      const attrLength =
+        attr.name.length + (attr.value ? attr.value.length + 3 : 0); // +3 for ="..."
+      return attrLength <= 20;
+    });
+
+    if (allShort) {
+      // Still check for long class values
+      const hasLongClass = attributes.some((attr) => {
+        if (attr.name === "class" && attr.value) {
+          const classValue = attr.value.replace(/\s+/g, " ").trim();
+          const classes = classValue.split(/\s+/);
+          return classes.length > 2 || classValue.length > 40;
+        }
+        return false;
+      });
+
+      if (!hasLongClass) {
+        return false;
+      }
+    }
+  }
+
+  // Break if there are many attributes
+  if (attributes.length > 6) {
+    return true;
+  }
+
+  // Break if any attribute has a very long value
   return attributes.some((attr) => {
+    if (attr.value && attr.value.length > 50) {
+      return true;
+    }
     if (attr.name === "class" && attr.value) {
       const classValue = attr.value.replace(/\s+/g, " ").trim();
       const classes = classValue.split(/\s+/);
@@ -156,10 +191,14 @@ function print(path, options, print) {
         }
 
         if (breakAttributes) {
+          const attributeDocs = attributeStrings.map((attr, index) =>
+            index === 0 ? attr : [hardline, attr]
+          );
+
           return [
             `<${elementName}`,
-            indent([line, attributeStrings.join(" ")]),
-            line,
+            indent([hardline, ...attributeDocs]),
+            hardline,
             `/>`,
           ];
         }
@@ -176,12 +215,27 @@ function print(path, options, print) {
           const textContent = childrenDocs[0];
           const contentString = children[0].content;
 
-          // For elements with long attributes, put content on separate line
+          // For elements with long attributes, check if content should stay inline
           if (breakAttributes) {
+            const attributeDocs = attributeStrings.map((attr, index) =>
+              index === 0 ? attr : [hardline, attr]
+            );
+
+            // Special case for very short content like "..." - keep inline with special closing
+            if (contentString === "...") {
+              return [
+                `<${elementName}`,
+                indent([hardline, ...attributeDocs]),
+                indent([hardline, `>${textContent}</${elementName}`]),
+                hardline,
+                `>`,
+              ];
+            }
+
             return [
               `<${elementName}`,
-              indent([line, attributeStrings.join(" ")]),
-              line,
+              indent([hardline, ...attributeDocs]),
+              hardline,
               `>`,
               indent([hardline, textContent]),
               hardline,
@@ -222,10 +276,14 @@ function print(path, options, print) {
 
         if (breakAttributes) {
           // For long attributes, format with line breaks
+          const attributeDocs = attributeStrings.map((attr, index) =>
+            index === 0 ? attr : [hardline, attr]
+          );
+
           return [
             `<${elementName}`,
-            indent([line, attributeStrings.join(" ")]),
-            line,
+            indent([hardline, ...attributeDocs]),
+            hardline,
             `>`,
             indent([hardline, formattedChildren]),
             hardline,
@@ -246,10 +304,14 @@ function print(path, options, print) {
         }
 
         if (breakAttributes) {
+          const attributeDocs = attributeStrings.map((attr, index) =>
+            index === 0 ? attr : [hardline, attr]
+          );
+
           return [
             `<${elementName}`,
-            indent([line, attributeStrings.join(" ")]),
-            line,
+            indent([hardline, ...attributeDocs]),
+            hardline,
             `></${elementName}>`,
           ];
         }
