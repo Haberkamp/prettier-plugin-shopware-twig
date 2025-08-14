@@ -78,6 +78,10 @@ function shouldBreakAttributes(attributes, elementName) {
 
     // Break if any attribute has an extremely long value
     return attributes.some((attr) => {
+      // Special handling for href attributes - break at lower threshold even for inline elements
+      if (attr.name === "href" && attr.value && attr.value.length > 30) {
+        return true;
+      }
       if (attr.value && attr.value.length > 80) {
         return true;
       }
@@ -132,6 +136,10 @@ function shouldBreakAttributes(attributes, elementName) {
   // Break if any attribute has a very long value
   return attributes.some((attr) => {
     if (attr.value && attr.value.length > 50) {
+      return true;
+    }
+    // Special handling for href attributes - break at lower threshold
+    if (attr.name === "href" && attr.value && attr.value.length > 30) {
       return true;
     }
     if (attr.name === "class" && attr.value) {
