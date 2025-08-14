@@ -24,8 +24,16 @@ function print(path, options, print) {
 
   switch (node.type) {
     case "template":
-      // For template nodes, print all children
-      return path.map(print, "children");
+      // For template nodes, print all children with line breaks between them
+      const childDocs = path.map(print, "children");
+      if (childDocs.length === 0) {
+        return "";
+      }
+      if (childDocs.length === 1) {
+        return childDocs[0];
+      }
+      // Join children with hardlines
+      return [childDocs[0], ...childDocs.slice(1).map(doc => [hardline, doc])];
 
     case "twig_statement_directive":
       // Handle function calls
@@ -60,6 +68,62 @@ function print(path, options, print) {
 
       return "";
 
+    case "html_element":
+      const elementName = node.name;
+      const attributes = node.attributes || [];
+      const children = node.children || [];
+
+      // Build attributes string
+      let attributesStr = "";
+      if (attributes.length > 0) {
+        attributesStr = attributes
+          .map((attr) => {
+            if (attr.value !== undefined) {
+              return ` ${attr.name}="${attr.value}"`;
+            }
+            return ` ${attr.name}`;
+          })
+          .join("");
+      }
+
+      // Handle void elements (self-closing)
+      if (node.void) {
+        return `<${elementName}${attributesStr}>`;
+      }
+
+      // Handle elements with children
+      if (children.length > 0) {
+        const childrenDocs = path.map(print, "children");
+        let formattedChildren;
+        
+        if (childrenDocs.length === 1) {
+          formattedChildren = childrenDocs[0];
+        } else {
+          // Join children with hardlines
+          formattedChildren = [childrenDocs[0], ...childrenDocs.slice(1).map(doc => [hardline, doc])];
+        }
+        
+        return [
+          `<${elementName}${attributesStr}>`,
+          indent([hardline, formattedChildren]),
+          hardline,
+          `</${elementName}>`,
+        ];
+      } else {
+        // Empty element
+        return `<${elementName}${attributesStr}></${elementName}>`;
+      }
+
+    case "content":
+      return node.content;
+
+    case "doctype":
+      return "<!doctype html>";
+
+    case "html_named_entity":
+    case "html_numeric_entity":
+      return node.content;
+
     default:
       // For unknown node types, return empty string
       return "";
@@ -84,6 +148,13 @@ function getVisitorKeys(node, nonTraversableKeys) {
       return ["children"];
     case "twig_statement_directive":
       return ["children"];
+    case "html_element":
+      return ["children"];
+    case "content":
+    case "doctype":
+    case "html_named_entity":
+    case "html_numeric_entity":
+      return []; // These are leaf nodes with no children to traverse
     default:
       // For other nodes, filter out non-traversable keys
       const keys = Object.keys(node).filter(
