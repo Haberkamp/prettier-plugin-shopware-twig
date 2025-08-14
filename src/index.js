@@ -127,6 +127,7 @@ function print(path, options, print) {
               "footer",
               "main",
               "nav",
+              "my-tag", // Add my-tag as a block-level element for spacing
             ].includes(child.name);
 
           if (isBlockLevel(currentChild) && isBlockLevel(previousChild)) {
