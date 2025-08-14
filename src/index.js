@@ -33,7 +33,10 @@ function print(path, options, print) {
         return childDocs[0];
       }
       // Join children with hardlines
-      return [childDocs[0], ...childDocs.slice(1).map(doc => [hardline, doc])];
+      return [
+        childDocs[0],
+        ...childDocs.slice(1).map((doc) => [hardline, doc]),
+      ];
 
     case "twig_statement_directive":
       // Handle function calls
@@ -95,14 +98,17 @@ function print(path, options, print) {
       if (children.length > 0) {
         const childrenDocs = path.map(print, "children");
         let formattedChildren;
-        
+
         if (childrenDocs.length === 1) {
           formattedChildren = childrenDocs[0];
         } else {
           // Join children with hardlines
-          formattedChildren = [childrenDocs[0], ...childrenDocs.slice(1).map(doc => [hardline, doc])];
+          formattedChildren = [
+            childrenDocs[0],
+            ...childrenDocs.slice(1).map((doc) => [hardline, doc]),
+          ];
         }
-        
+
         return [
           `<${elementName}${attributesStr}>`,
           indent([hardline, formattedChildren]),
