@@ -149,7 +149,9 @@ function formatAttribute(attr) {
   }
 
   if (value !== undefined) {
-    return `${attr.name}="${value}"`;
+    // Use single quotes if the value contains double quotes, otherwise use double quotes
+    const quote = value.includes('"') ? "'" : '"';
+    return `${attr.name}=${quote}${value}${quote}`;
   }
   return attr.name;
 }
