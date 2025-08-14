@@ -114,7 +114,14 @@ function shouldBreakAttributes(attributes, elementName) {
       if (!hasLongClass) {
         return false;
       }
+    } else {
+      // If not all short, check if we should still break
+      // Break if we have multiple attributes (3+) and they're not all very short
+      if (attributes.length >= 3) {
+        return true;
+      }
     }
+    // If not all short but only 1-2 attributes, continue to other checks
   }
 
   // Break if there are many attributes
@@ -146,6 +153,10 @@ function formatAttribute(attr) {
   if (value !== undefined) {
     // Normalize whitespace - replace multiple spaces/newlines with single spaces
     value = value.replace(/\s+/g, " ").trim();
+
+    // Convert HTML entities to their character equivalents where appropriate
+    // Convert &apos; to single quote for cleaner output
+    value = value.replace(/&apos;/g, "'");
   }
 
   if (value !== undefined) {
