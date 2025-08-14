@@ -8,11 +8,89 @@ const AST_FORMAT = "shopware-twig-ast";
 const { indent, hardline, line, softline, group, fill, ifBreak } = doc.builders;
 
 /**
- * Check if attributes should be broken onto separate lines
- * @param {Array} attributes
+ * Check if an element is inline (whitespace-sensitive)
+ * Based on default CSS display values
+ * @param {string} elementName
  * @returns {boolean}
  */
-function shouldBreakAttributes(attributes) {
+function isInlineElement(elementName) {
+  const inlineElements = [
+    "a",
+    "abbr",
+    "acronym",
+    "b",
+    "bdi",
+    "bdo",
+    "big",
+    "br",
+    "button",
+    "cite",
+    "code",
+    "dfn",
+    "em",
+    "i",
+    "img",
+    "input",
+    "kbd",
+    "label",
+    "map",
+    "mark",
+    "meter",
+    "noscript",
+    "object",
+    "output",
+    "progress",
+    "q",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "select",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "textarea",
+    "time",
+    "tt",
+    "u",
+    "var",
+    "wbr",
+  ];
+  return inlineElements.includes(elementName.toLowerCase());
+}
+
+/**
+ * Check if attributes should be broken onto separate lines
+ * @param {Array} attributes
+ * @param {string} elementName
+ * @returns {boolean}
+ */
+function shouldBreakAttributes(attributes, elementName) {
+  // For inline elements, be more conservative about breaking attributes
+  // to preserve whitespace-sensitive formatting
+  if (isInlineElement(elementName)) {
+    // Only break for inline elements if there are many attributes or extremely long values
+    if (attributes.length > 8) {
+      return true;
+    }
+
+    // Break if any attribute has an extremely long value
+    return attributes.some((attr) => {
+      if (attr.value && attr.value.length > 80) {
+        return true;
+      }
+      // More lenient class handling for inline elements
+      if (attr.name === "class" && attr.value) {
+        const classValue = attr.value.replace(/\s+/g, " ").trim();
+        return classValue.length > 80; // Much higher threshold for inline elements
+      }
+      return false;
+    });
+  }
+
+  // Original logic for block elements
   // Don't break if there are only a few short attributes
   if (attributes.length <= 4) {
     // Check if all attributes are short
@@ -180,7 +258,7 @@ function print(path, options, print) {
       const children = node.children || [];
 
       // Check if we should break attributes
-      const breakAttributes = shouldBreakAttributes(attributes);
+      const breakAttributes = shouldBreakAttributes(attributes, elementName);
 
       // Format attributes
       const attributeStrings = attributes.map(formatAttribute);
