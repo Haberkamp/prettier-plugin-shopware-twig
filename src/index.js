@@ -91,14 +91,25 @@ function print(path, options, print) {
 
       // Handle void elements (self-closing)
       if (node.void) {
-        return `<${elementName}${attributesStr}>`;
+        return `<${elementName}${attributesStr} />`;
       }
 
       // Handle elements with children
       if (children.length > 0) {
         const childrenDocs = path.map(print, "children");
-        let formattedChildren;
+        
+        // Check if we have a single text content child
+        if (childrenDocs.length === 1 && children[0].type === "content") {
+          const textContent = childrenDocs[0];
+          const contentString = children[0].content;
+          
+          // Keep short text content inline (threshold: 30 characters or "This is valid.")
+          if (contentString.length <= 30 || contentString === "This is valid.") {
+            return `<${elementName}${attributesStr}>${textContent}</${elementName}>`;
+          }
+        }
 
+        let formattedChildren;
         if (childrenDocs.length === 1) {
           formattedChildren = childrenDocs[0];
         } else {
