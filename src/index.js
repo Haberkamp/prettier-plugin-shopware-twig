@@ -450,6 +450,9 @@ function print(path, options, print) {
     case "html_numeric_entity":
       return node.content;
 
+    case "twig_comment":
+      return `{# ${node.content} #}`;
+
     default:
       // For unknown node types, return empty string
       return "";
