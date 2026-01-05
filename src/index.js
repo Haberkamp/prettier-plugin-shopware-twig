@@ -247,6 +247,27 @@ function print(path, options, print) {
         return `{% ${functionName}() %}`;
       }
 
+      // Handle if statements
+      if (node.condition) {
+        const expression = node.condition.expression.content;
+        const openTag = `{% if ${expression} %}`;
+        const closeTag = "{% endif %}";
+
+        if (node.children && node.children.length > 0) {
+          const childrenDocs = path.map(print, "children");
+
+          return [
+            openTag,
+            indent([hardline, childrenDocs]),
+            hardline,
+            closeTag,
+          ];
+        } else {
+          // Empty if block
+          return [openTag, closeTag];
+        }
+      }
+
       // Handle block statements
       const tagName = node.tag?.name;
       const variableName = node.variable?.content;
