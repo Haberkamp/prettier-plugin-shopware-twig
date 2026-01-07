@@ -52,6 +52,6 @@
   "types": "./dist/commonjs/index.d.ts",
   "module": "./dist/esm/index.js",
   "dependencies": {
-    "shopware-twig-parser": "0.4.0"
+    "shopware-twig-parser": "0.5.0"
   }
 }
