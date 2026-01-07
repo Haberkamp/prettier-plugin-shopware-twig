@@ -229,7 +229,19 @@ function print(path, options, print) {
               "my-tag", // Add my-tag as a block-level element for spacing
             ].includes(child.name);
 
-          if (isBlockLevel(currentChild) && isBlockLevel(previousChild)) {
+          // Check if current node is on same line as previous node ended (only for comments)
+          const sameLine =
+            currentChild.loc &&
+            previousChild.loc &&
+            currentChild.loc.start.line === previousChild.loc.end.line;
+
+          const involvesComment =
+            currentChild.type === "twig_comment" ||
+            previousChild.type === "twig_comment";
+
+          if (sameLine && involvesComment) {
+            formattedChildren.push(childDocs[i]);
+          } else if (isBlockLevel(currentChild) && isBlockLevel(previousChild)) {
             formattedChildren.push(hardline, hardline, childDocs[i]);
           } else {
             formattedChildren.push(hardline, childDocs[i]);
@@ -449,6 +461,10 @@ function print(path, options, print) {
     case "html_named_entity":
     case "html_numeric_entity":
       return node.content;
+
+    case "twig_comment":
+      const commentContent = node.content || "";
+      return `{# ${commentContent} #}`;
 
     default:
       // For unknown node types, return empty string
